@@ -43,7 +43,7 @@ export const getAllPokemon = (req: Request, res: Response) => {
 export const getOnePokemon = (req: Request, res: Response) => {
 	// Find Pokemon by ID
 	const urlParts = req.url.split("/");
-	const pokemonId = parseInt(urlParts[2]);
+	const pokemonId = parseInt(urlParts[1]);
 
 	const foundPokemon = database.find((pokemon) => pokemon.id === pokemonId);
 
@@ -53,19 +53,18 @@ export const getOnePokemon = (req: Request, res: Response) => {
 			payload: foundPokemon,
 		});
 	} else {
-		res.status(400).json({ message: "Pokemon not found" });
+		res.status(404).json({ message: "Pokemon not found" });
 	}
 };
 
 // POST /pokemon
 export const createPokemon = (req: Request, res: Response) => {
 	const newPokemon = req.body;
+	console.log(newPokemon);
+
 	// Add basic data logic (you'd likely use a database in a real application)
 	newPokemon.id = database.length + 1; // Simple ID assignment
 	database.push(newPokemon);
-
-	let body = ""; // To store incoming data
-	body += chunk.toString();
 
 	res.status(201).json({
 		message: "Pokemon created!",
@@ -74,7 +73,44 @@ export const createPokemon = (req: Request, res: Response) => {
 };
 
 // PUT /pokemon/:id
-export const updatePokemon = (req: Request, res: Response) => {};
+export const updatePokemon = (req: Request, res: Response) => {
+	// Find Pokemon by ID
+	const urlParts = req.url.split("/");
+	const pokemonId = parseInt(urlParts[1]);
+
+	let pokemonToUpdate = database.find((pokemon) => pokemon.id === pokemonId);
+	let pokemonIndex = database.findIndex(
+		(pokemon) => pokemon.id === pokemonId,
+	);
+
+	if (pokemonToUpdate) {
+		const pokemonUpdates: Partial<Pokemon> = req.body;
+
+		database[pokemonIndex] = {
+			...pokemonToUpdate,
+			...pokemonUpdates,
+		};
+
+		res.status(204).json({ message: "Pokemon updated" });
+	} else {
+		res.status(404).json({ message: "Pokemon not found" });
+	}
+};
 
 // DELETE /pokemon/:id
-export const deletePokemon = (req: Request, res: Response) => {};
+export const deletePokemon = (req: Request, res: Response) => {
+	// Find Pokemon by ID
+	const urlParts = req.url.split("/");
+	const pokemonId = parseInt(urlParts[1]);
+
+	let pokemonIndex = database.findIndex(
+		(pokemon) => pokemon.id === pokemonId,
+	);
+
+	if (pokemonIndex != -1) {
+		database.splice(pokemonIndex, 1);
+		res.status(204).json({ message: "Pokemon deleted" });
+	} else {
+		res.status(404).json({ message: "Pokemon not found" });
+	}
+};
